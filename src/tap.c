@@ -1,3 +1,12 @@
+/*       __            
+ *      / /_____ _____ 
+ *     / __/ __ `/ __ \
+ *    / /_/ /_/ / /_/ /
+ *    \__/\__,_/ .___/ 
+ *            /_/
+ *
+ *  Terminal Audio Player
+ */
 
 #define _XOPEN_SOURCE_EXTENDE
 
