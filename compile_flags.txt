@@ -1,6 +1,5 @@
 -Wall
 -Wextra
+-pedantic
 -D_REENTRANT
 -I/usr/include/SDL2
--lSDL2_mixer
--lSDL2
