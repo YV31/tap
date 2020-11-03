@@ -27,9 +27,9 @@ int volume = MIX_MAX_VOLUME / 2;
 
 void show_index()
 {
-    wclear(control_win);
-    wprintw(control_win, "Index: %3d\n", music_index);
-    wrefresh(control_win);
+  wclear(control_win);
+  wprintw(control_win, "Index: %3d\n", music_index);
+  wrefresh(control_win);
 }
 
 void show_music(TagLib_Tag **tags, char **argv)
