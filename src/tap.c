@@ -42,7 +42,7 @@ void play_prev(Mix_Music **queue)
 void show_index()
 {
   wclear(control_win);
-  wprintw(control_win, "Index: %3d\n", music_index);
+  wprintw(control_win, "Index: %3d\n", music_index_tmp);
   wrefresh(control_win);
 }
 
