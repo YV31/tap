@@ -22,8 +22,21 @@ WINDOW *queue_win;
 WINDOW *music_win;
 
 unsigned int music_index = 0;
+unsigned int music_index_tmp = 0;
 bool quit = FALSE;
 int volume = MIX_MAX_VOLUME / 2;
+
+void play_next(Mix_Music **queue)
+{
+  music_index++;
+  Mix_PlayMusic(queue[music_index], 0);
+}
+
+void play_prev(Mix_Music **queue)
+{
+  music_index--;
+  Mix_PlayMusic(queue[music_index], 0);
+}
 
 void show_index()
 {
@@ -122,16 +135,14 @@ int main(int argc, char **argv)
         set_volume(-1);
         break;
       case KEY_LEFT:
-        music_index--;
+        music_index_tmp--;
         show_music(tags, argv);
         show_index();
-        Mix_PlayMusic(queue[music_index], 0);
         break;
       case KEY_RIGHT:
-        music_index++;
+        music_index_tmp++;
         show_music(tags, argv);
         show_index();
-        Mix_PlayMusic(queue[music_index], 0);
         break;
       case KEY_F(1):
         quit = 1;
@@ -142,20 +153,35 @@ int main(int argc, char **argv)
 
     // Check if a music is playing
     if (!Mix_PlayingMusic()) {
-
       if (music_index != num_of_musics) {
-        wclear(music_win);
-        wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, argv[music_index + 1]);
-        wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
-        wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
-        wrefresh(music_win);
-
-        Mix_PlayMusic(queue[music_index], 0);
+        music_index_tmp++;
       } else {
         quit = 1;
       }
+    }
 
-      music_index++;
+    if (music_index_tmp > music_index) {
+      play_next(queue);
+      
+      wclear(music_win);
+      wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, argv[music_index + 1]);
+      wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
+      wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
+      wrefresh(music_win);
+
+      music_index_tmp = music_index;
+    }
+
+    if (music_index_tmp < music_index) {
+      play_prev(queue);
+
+      wclear(music_win);
+      wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, argv[music_index + 1]);
+      wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
+      wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
+      wrefresh(music_win);
+
+      music_index_tmp = music_index;
     }
   }
 
