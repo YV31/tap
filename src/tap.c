@@ -16,6 +16,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <unistd.h>
+#include <libgen.h>
 
 WINDOW *control_win;
 WINDOW *queue_win;
@@ -48,7 +49,7 @@ void show_index()
 void show_music(TagLib_Tag **tags, char **argv)
 {
   wclear(music_win);
-  wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, argv[music_index + 1]);
+  wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, basename(argv[music_index + 1]));
   wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
   wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
   wrefresh(music_win);
@@ -136,12 +137,10 @@ int main(int argc, char **argv)
         break;
       case KEY_LEFT:
         music_index_tmp--;
-        show_music(tags, argv);
         show_index();
         break;
       case KEY_RIGHT:
         music_index_tmp++;
-        show_music(tags, argv);
         show_index();
         break;
       case KEY_F(1):
@@ -162,24 +161,14 @@ int main(int argc, char **argv)
 
     if (music_index_tmp > music_index) {
       play_next(queue);
-      
-      wclear(music_win);
-      wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, argv[music_index + 1]);
-      wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
-      wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
-      wrefresh(music_win);
+      show_music(tags, argv);
 
       music_index_tmp = music_index;
     }
 
     if (music_index_tmp < music_index) {
       play_prev(queue);
-
-      wclear(music_win);
-      wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, argv[music_index + 1]);
-      wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
-      wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
-      wrefresh(music_win);
+      show_music(tags, argv);
 
       music_index_tmp = music_index;
     }
