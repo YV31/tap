@@ -21,11 +21,28 @@ WINDOW *control_win;
 WINDOW *queue_win;
 WINDOW *music_win;
 
-unsigned int current_music_index = 0;
-bool quit = 0;
+unsigned int music_index = 0;
+bool quit = FALSE;
 int volume = MIX_MAX_VOLUME / 2;
 
-void set_volume(int n) {
+void show_index()
+{
+    wclear(control_win);
+    wprintw(control_win, "Index: %3d\n", music_index);
+    wrefresh(control_win);
+}
+
+void show_music(TagLib_Tag **tags, char **argv)
+{
+  wclear(music_win);
+  wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, argv[music_index + 1]);
+  wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
+  wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
+  wrefresh(music_win);
+}
+
+void set_volume(int n) 
+{
   if (volume < MIX_MAX_VOLUME) {
     volume = volume + n;
   }
@@ -60,15 +77,15 @@ int main(int argc, char **argv)
   getmaxyx(stdscr, my, mx);
 
   control_win = newwin(0, mx, my - 1, 1);
+  queue_win = newwin(my - 6, mx - 2, 0, 1);
+  music_win = newwin(4, mx, my - 6, 2);
+
   wrefresh(control_win);
-
-  queue_win = newwin(30, mx, 2, 0);
   wrefresh(queue_win);
-
-  music_win = newwin(4, mx, 31, 1);
+  scrollok(queue_win, TRUE);
   wrefresh(music_win);
 
-  scrollok(queue_win, TRUE);
+  refresh();
 
   Mix_Music *queue[argc - 1];
   TagLib_Tag *tags[argc - 1];
@@ -76,18 +93,20 @@ int main(int argc, char **argv)
   unsigned int num_of_musics = argc - 1;
   int ch;
 
-  printw("No. Musics: %d\n", num_of_musics);
-  refresh();
-
-  wprintw(queue_win, "Queue:\n");
-
   // Data extraction
   for (size_t i = 0; i < num_of_musics; i++) {
-    wprintw(queue_win, "%s [%d]\n", argv[i + 1], i);
-    wrefresh(queue_win);
+    wmove(queue_win, i + 1, 1);
+    wprintw(queue_win, "[%d] %s\n", i, argv[i + 1]);
     queue[i] = Mix_LoadMUS(argv[i + 1]);
     tags[i] = taglib_file_tag(taglib_file_new(argv[i + 1]));
   }
+  
+  box(queue_win, 0, 0);
+  
+  wmove(queue_win, 0, 1);
+  wprintw(queue_win, " Queue ");
+
+  wrefresh(queue_win);
 
   Mix_VolumeMusic(volume);
 
@@ -102,8 +121,21 @@ int main(int argc, char **argv)
       case KEY_DOWN:
         set_volume(-1);
         break;
+      case KEY_LEFT:
+        music_index--;
+        show_music(tags, argv);
+        show_index();
+        Mix_PlayMusic(queue[music_index], 0);
+        break;
+      case KEY_RIGHT:
+        music_index++;
+        show_music(tags, argv);
+        show_index();
+        Mix_PlayMusic(queue[music_index], 0);
+        break;
       case KEY_F(1):
         quit = 1;
+        break;
       default:
         break;
     }
@@ -111,19 +143,19 @@ int main(int argc, char **argv)
     // Check if a music is playing
     if (!Mix_PlayingMusic()) {
 
-      if (current_music_index != num_of_musics) {
+      if (music_index != num_of_musics) {
         wclear(music_win);
-        wprintw(music_win, "\nPlaying [%d]: %s\n", current_music_index, argv[current_music_index + 1]);
-        wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[current_music_index]));
-        wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[current_music_index]));
+        wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, argv[music_index + 1]);
+        wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
+        wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
         wrefresh(music_win);
 
-        Mix_PlayMusic(queue[current_music_index], 0);
+        Mix_PlayMusic(queue[music_index], 0);
       } else {
         quit = 1;
       }
 
-      current_music_index++;
+      music_index++;
     }
   }
 
