@@ -1,5 +1,0 @@
--Wall
--Wextra
--pedantic
--D_REENTRANT
--I/usr/include/SDL2
