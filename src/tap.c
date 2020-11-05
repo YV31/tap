@@ -26,7 +26,6 @@ unsigned int music_index = 0;
 unsigned int music_index_tmp = 0;
 bool quit = FALSE;
 int volume = MIX_MAX_VOLUME / 2;
-bool paused = FALSE;
 
 void play_next(Mix_Music **queue)
 {
