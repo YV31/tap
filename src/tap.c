@@ -120,18 +120,18 @@ int main(int argc, char **argv)
     ch = getch();
 
     switch(ch) {
-      case KEY_UP:
+      case 'k':
         set_volume(1);
         break;
-      case KEY_DOWN:
+      case 'j':
         set_volume(-1);
         break;
-      case KEY_LEFT:
+      case 'h':
         if (music_index > 0) {
           music_index_tmp--;
         }
         break;
-      case KEY_RIGHT:
+      case 'l':
         if (music_index < num_of_musics - 1) {
           music_index_tmp++;
         }
