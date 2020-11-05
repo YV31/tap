@@ -49,15 +49,19 @@ void show_music(TagLib_Tag **tags, char **argv)
   wrefresh(music_win);
 }
 
-void set_volume(int n) 
-{
-  if (volume < MIX_MAX_VOLUME) {
-    volume = volume + n;
-  }
+void show_volume() {
   wclear(control_win);
   wprintw(control_win, "Volume: %3d\n", volume);
   wrefresh(control_win);
   Mix_VolumeMusic(volume);
+}
+
+void set_volume(unsigned int n) 
+{
+  if (volume > 0 && volume < MIX_MAX_VOLUME) {
+    volume = volume + n;
+    show_volume();
+  }
 }
 
 int main(int argc, char **argv)
