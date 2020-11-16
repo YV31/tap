@@ -1,8 +1,8 @@
-/*       __            
- *      / /_____ _____ 
+/*       __
+ *      / /_____ _____
  *     / __/ __ `/ __ \
  *    / /_/ /_/ / /_/ /
- *    \__/\__,_/ .___/ 
+ *    \__/\__,_/ .___/
  *            /_/
  *
  *  Terminal Audio Player
@@ -27,41 +27,15 @@ unsigned int music_index_tmp = 0;
 bool quit = FALSE;
 int volume = MIX_MAX_VOLUME / 2;
 
-void play_next(Mix_Music **queue)
-{
-  music_index++;
-  Mix_PlayMusic(queue[music_index], 0);
-}
+void play_next(Mix_Music **queue);
 
-void play_prev(Mix_Music **queue)
-{
-  music_index--;
-  Mix_PlayMusic(queue[music_index], 0);
-}
+void play_prev(Mix_Music **queue);
 
-void show_music(TagLib_Tag **tags, char **argv)
-{
-  wclear(music_win);
-  wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, basename(argv[music_index + 1]));
-  wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
-  wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
-  wrefresh(music_win);
-}
+void show_music(TagLib_Tag **tags, char **argv);
 
-void show_volume() {
-  wclear(control_win);
-  wprintw(control_win, "Volume: %3d\n", volume);
-  wrefresh(control_win);
-  Mix_VolumeMusic(volume);
-}
+void show_volume();
 
-void set_volume(unsigned int n) 
-{
-  if (volume > 0 && volume < MIX_MAX_VOLUME) {
-    volume = volume + n;
-    show_volume();
-  }
-}
+void set_volume(unsigned int n);
 
 int main(int argc, char **argv)
 {
@@ -110,7 +84,7 @@ int main(int argc, char **argv)
     queue[i] = Mix_LoadMUS(argv[i + 1]);
     tags[i] = taglib_file_tag(taglib_file_new(argv[i + 1]));
   }
-  
+
   wrefresh(queue_win);
 
   Mix_VolumeMusic(volume);
@@ -165,9 +139,7 @@ int main(int argc, char **argv)
       show_music(tags, argv);
 
       music_index_tmp = music_index;
-    }
-
-    if (music_index_tmp < music_index) {
+    } else if (music_index_tmp < music_index) {
       play_prev(queue);
       show_music(tags, argv);
 
@@ -188,4 +160,41 @@ int main(int argc, char **argv)
   SDL_Quit();
 
   // }}}
+}
+
+void play_next(Mix_Music **queue)
+{
+  music_index++;
+  Mix_PlayMusic(queue[music_index], 0);
+}
+
+void play_prev(Mix_Music **queue)
+{
+  music_index--;
+  Mix_PlayMusic(queue[music_index], 0);
+}
+
+void show_music(TagLib_Tag **tags, char **argv)
+{
+  wclear(music_win);
+  wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, basename(argv[music_index + 1]));
+  wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
+  wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
+  wrefresh(music_win);
+}
+
+void show_volume()
+{
+  wclear(control_win);
+  wprintw(control_win, "Volume: %3d\n", volume);
+  wrefresh(control_win);
+  Mix_VolumeMusic(volume);
+}
+
+void set_volume(unsigned int n)
+{
+  if (volume > 0 && volume < MIX_MAX_VOLUME) {
+    volume = volume + n;
+    show_volume();
+  }
 }
