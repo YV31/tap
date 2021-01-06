@@ -18,20 +18,30 @@
 #include <unistd.h>
 #include <libgen.h>
 
+#define LINKED_LIST_IMPLEMENTATION
+#include "linked-list.h"
+
 WINDOW *control_win;
 WINDOW *queue_win;
 WINDOW *music_win;
+
+typedef struct {
+  Mix_Music *music;
+  TagLib_Tag *tag;
+} Music;
+
 
 unsigned int music_index = 0;
 unsigned int music_index_tmp = 0;
 bool quit = FALSE;
 int volume = MIX_MAX_VOLUME / 2;
 
-void play_next(Mix_Music **queue);
 
-void play_prev(Mix_Music **queue);
+void play_next(Music *queue);
 
-void show_music(TagLib_Tag **tags, char **argv);
+void play_prev(Music *queue);
+
+void show_music(Music *queue, char **argv);
 
 void show_volume();
 
@@ -55,7 +65,6 @@ int main(int argc, char **argv)
 
   nodelay(stdscr, TRUE);
   keypad(stdscr, TRUE);
-
   // }}}
 
   int my, mx;
@@ -72,8 +81,7 @@ int main(int argc, char **argv)
 
   refresh();
 
-  Mix_Music *queue[argc - 1];
-  TagLib_Tag *tags[argc - 1];
+  Music queue[argc - 1];
 
   unsigned int num_of_musics = argc - 1;
   int ch;
@@ -81,16 +89,18 @@ int main(int argc, char **argv)
   // Data extraction
   for (size_t i = 0; i < num_of_musics; i++) {
     wprintw(queue_win, "[%d] %s\n", i, argv[i + 1]);
-    queue[i] = Mix_LoadMUS(argv[i + 1]);
-    tags[i] = taglib_file_tag(taglib_file_new(argv[i + 1]));
+    queue[i].music = Mix_LoadMUS(argv[i + 1]);
+    queue[i].tag = taglib_file_tag(taglib_file_new(argv[i + 1]));
   }
+
+  Music *current = &queue[0];
 
   wrefresh(queue_win);
 
   Mix_VolumeMusic(volume);
 
-  show_music(tags, argv);
-  Mix_PlayMusic(queue[0], 0);
+  show_music(queue, argv);
+  Mix_PlayMusic(current->music, 0);
 
   while(!quit) {
 
@@ -99,31 +109,31 @@ int main(int argc, char **argv)
     switch(ch) {
       case 'k':
         set_volume(1);
-        break;
+      break;
       case 'j':
         set_volume(-1);
-        break;
+      break;
       case 'h':
         if (music_index > 0) {
           music_index_tmp--;
         }
-        break;
+      break;
       case 'l':
         if (music_index < num_of_musics - 1) {
           music_index_tmp++;
         }
-        break;
+      break;
       case 'p':
         Mix_PauseMusic();
-        break;
+      break;
       case 'u':
         Mix_ResumeMusic();
-        break;
+      break;
       case 'q':
         quit = 1;
-        break;
+      break;
       default:
-        break;
+      break;
     }
 
     if (!Mix_PlayingMusic()) {
@@ -136,21 +146,20 @@ int main(int argc, char **argv)
 
     if (music_index_tmp > music_index) {
       play_next(queue);
-      show_music(tags, argv);
+      show_music(queue, argv);
 
       music_index_tmp = music_index;
     } else if (music_index_tmp < music_index) {
       play_prev(queue);
-      show_music(tags, argv);
+      show_music(queue, argv);
 
       music_index_tmp = music_index;
     }
   }
 
   // END {{{
-
   for (int i = 0; i < argc - 1; i++) {
-    Mix_FreeMusic(queue[i]);
+    Mix_FreeMusic(queue[i].music);
   }
 
   endwin();
@@ -158,28 +167,27 @@ int main(int argc, char **argv)
   Mix_CloseAudio();
   Mix_Quit();
   SDL_Quit();
-
   // }}}
 }
 
-void play_next(Mix_Music **queue)
+void play_next(Music *queue)
 {
   music_index++;
-  Mix_PlayMusic(queue[music_index], 0);
+  Mix_PlayMusic(queue[music_index].music, 0);
 }
 
-void play_prev(Mix_Music **queue)
+void play_prev(Music *queue)
 {
   music_index--;
-  Mix_PlayMusic(queue[music_index], 0);
+  Mix_PlayMusic(queue[music_index].music, 0);
 }
 
-void show_music(TagLib_Tag **tags, char **argv)
+void show_music(Music *queue, char **argv)
 {
   wclear(music_win);
   wprintw(music_win, "\nPlaying [%d]: %s\n", music_index, basename(argv[music_index + 1]));
-  wprintw(music_win, "Artist: %s\n", taglib_tag_artist(tags[music_index]));
-  wprintw(music_win, "Album: %s\n", taglib_tag_album(tags[music_index]));
+  wprintw(music_win, "Artist: %s\n", taglib_tag_artist(queue[music_index].tag));
+  wprintw(music_win, "Album: %s\n", taglib_tag_album(queue[music_index].tag));
   wrefresh(music_win);
 }
 
